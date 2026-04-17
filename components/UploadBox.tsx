@@ -5,11 +5,12 @@ import { UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UploadBoxProps {
-  onImageSelect: (file: File) => void;
+  onImagesSelect: (files: File[]) => void;
   disabled?: boolean;
+  credits?: number;
 }
 
-export function UploadBox({ onImageSelect, disabled }: UploadBoxProps) {
+export function UploadBox({ onImagesSelect, disabled, credits = 3 }: UploadBoxProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,18 +30,23 @@ export function UploadBox({ onImageSelect, disabled }: UploadBoxProps) {
     if (disabled) return;
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        onImageSelect(file);
+      const files = Array.from(e.dataTransfer.files)
+        .filter(file => file.type.startsWith('image/'))
+        .slice(0, 10); // Limit to 10 files
+      if (files.length > 0) {
+        onImagesSelect(files);
       }
     }
-  }, [onImageSelect, disabled]);
+  }, [onImagesSelect, disabled]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      onImageSelect(e.target.files[0]);
+      const files = Array.from(e.target.files).slice(0, 10);
+      if (files.length > 0) {
+        onImagesSelect(files);
+      }
     }
-  }, [onImageSelect]);
+  }, [onImagesSelect]);
 
   const handleClick = () => {
     if (!disabled) {
@@ -62,6 +68,7 @@ export function UploadBox({ onImageSelect, disabled }: UploadBoxProps) {
     >
       <input
         type="file"
+        multiple
         ref={fileInputRef}
         onChange={handleChange}
         accept="image/jpeg, image/png, image/webp"
@@ -74,13 +81,14 @@ export function UploadBox({ onImageSelect, disabled }: UploadBoxProps) {
         Start from a photo
       </h2>
       <p className="mb-8 text-sm text-center text-gray-500 max-w-[280px]">
-        Remove background instantly — free & fast. Max file size 10MB.
+        Drop 1 to 10 images here — free & fast. Max file size 10MB each.
+        <br/><span className="text-[#059669] font-medium mt-1 inline-block">{credits} free removals remaining</span>
       </p>
       <button 
         disabled={disabled}
         className="px-[18px] py-[10px] font-semibold text-[14px] text-white transition-opacity bg-black rounded-lg hover:opacity-90"
       >
-        Upload Image
+        Upload Images
       </button>
     </div>
   );

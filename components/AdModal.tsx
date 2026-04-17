@@ -8,9 +8,10 @@ interface AdModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUnlock: () => void;
+  intent?: 'hd_download' | 'unlock_removals' | null;
 }
 
-export function AdModal({ isOpen, onClose, onUnlock }: AdModalProps) {
+export function AdModal({ isOpen, onClose, onUnlock, intent = 'hd_download' }: AdModalProps) {
   const [countdown, setCountdown] = useState(5);
   const [adFinished, setAdFinished] = useState(false);
 
@@ -65,7 +66,9 @@ export function AdModal({ isOpen, onClose, onUnlock }: AdModalProps) {
                 <PlayCircle className="w-8 h-8" />
               </div>
               <h3 className="mb-2 text-lg font-semibold text-gray-900 text-center">
-                Watch an ad to unlock HD Download
+                {intent === 'hd_download' 
+                  ? 'Watch an ad to unlock HD Download' 
+                  : 'Watch an ad to unlock 3 more background removals'}
               </h3>
               <p className="min-h-[60px] text-sm text-center text-gray-500 mb-6 bg-gray-50 rounded-xl p-4 w-full flex items-center justify-center border border-gray-100 italic">
                 {/* Simulated Ad Space */}
@@ -78,10 +81,14 @@ export function AdModal({ isOpen, onClose, onUnlock }: AdModalProps) {
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3 className="mb-2 text-lg font-semibold text-gray-900 text-center">
-                HD Download Unlocked!
+                {intent === 'hd_download' 
+                  ? 'HD Download Unlocked!' 
+                  : '3 Removals Unlocked!'}
               </h3>
               <p className="text-sm text-center text-gray-500 mb-6">
-                Thank you. You can now download your image in high resolution.
+                {intent === 'hd_download'
+                  ? 'Thank you. You can now download your image in high resolution.'
+                  : 'Thank you. You can now remove backgrounds for 3 more images.'}
               </p>
             </>
           )}
@@ -90,7 +97,6 @@ export function AdModal({ isOpen, onClose, onUnlock }: AdModalProps) {
             onClick={() => {
               if (adFinished) {
                   onUnlock();
-                  onClose();
               }
             }}
             disabled={!adFinished}
@@ -101,7 +107,9 @@ export function AdModal({ isOpen, onClose, onUnlock }: AdModalProps) {
                 : "bg-gray-300 cursor-not-allowed"
             )}
           >
-            {adFinished ? 'Continue to Download' : `Wait ${countdown}s`}
+            {adFinished 
+              ? (intent === 'hd_download' ? 'Continue to Download' : 'Continue to Upload') 
+              : `Wait ${countdown}s`}
           </button>
         </div>
       </div>

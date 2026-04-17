@@ -5,7 +5,7 @@ export default function About() {
     <StaticPageLayout title="About Us">
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Who We Are</h2>
       <p>
-        Welcome to BGRemover — a passionate team of developers and digital creators dedicated to making high-quality photo editing accessible to everyone. We believe that professional-grade design tools shouldn't be locked behind prohibitive paywalls or steep learning curves.
+        Welcome to PromptCraft — a passionate team of developers and digital creators dedicated to making high-quality photo editing accessible to everyone. We believe that professional-grade design tools shouldn't be locked behind prohibitive paywalls or steep learning curves.
       </p>
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Our Mission</h2>
@@ -15,7 +15,7 @@ export default function About() {
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Why Trust Us?</h2>
       <p>
-        We built BGRemover with privacy and transparency at its core. 
+        We built PromptCraft with privacy and transparency at its core. 
       </p>
       <ul className="list-disc pl-5 mt-2 space-y-2">
         <li><strong>No Hidden Fees:</strong> Our core standard-res service is 100% free. We sustain server costs transparently through display advertising and optional sponsored videos.</li>

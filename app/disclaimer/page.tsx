@@ -7,7 +7,7 @@ export default function Disclaimer() {
       
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">1. General Information</h2>
       <p>
-        The information and tools provided by BGRemover are for general informational and utility purposes only. All information on the site is provided in good faith, however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any automated AI outputs.
+        The information and tools provided by PromptCraft are for general informational and utility purposes only. All information on the site is provided in good faith, however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any automated AI outputs.
       </p>
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">2. AI Processing Disclaimer</h2>

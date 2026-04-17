@@ -41,6 +41,26 @@ export default function Home() {
   const [hdUnlocked, setHdUnlocked] = useState(false);
   const [adModalOpen, setAdModalOpen] = useState(false);
 
+  // Rate Limiting State
+  const [credits, setCredits] = useState<number>(3);
+  const [adIntent, setAdIntent] = useState<'hd_download' | 'unlock_removals' | null>(null);
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchCompleted, setBatchCompleted] = useState<{file: File, url: string}[]>([]);
+  const [batchError, setBatchError] = useState<string | null>(null);
+
+  const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('bg_removal_credits');
+    if (saved !== null) {
+      setCredits(parseInt(saved, 10));
+    } else {
+      localStorage.setItem('bg_removal_credits', '3');
+    }
+  }, []);
+
   // Background state
   const [bgType, setBgType] = useState<BgType>('transparent');
   const [bgColor, setBgColor] = useState('#ffffff');
@@ -56,19 +76,83 @@ export default function Home() {
     });
   };
 
-  const handleImageSelect = (file: File) => {
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File size exceeds 10MB limit.");
+  const handleImagesSelect = (files: File[]) => {
+    if (files.length === 0) return;
+    
+    if (files.some(file => file.size > 10 * 1024 * 1024)) {
+      setError("One or more files exceed 10MB limit.");
       return;
     }
 
+    if (credits < files.length) {
+      setPendingFiles(files);
+      setAdIntent('unlock_removals');
+      setAdModalOpen(true);
+      return;
+    }
+
+    proceedWithImagesSelect(files);
+  };
+
+  const proceedWithImagesSelect = (files: File[]) => {
     setError(null);
     setHdUnlocked(false);
     
-    const objUrl = URL.createObjectURL(file);
-    setOriginalFile(file);
-    setOriginalImageUrl(objUrl);
-    setUploadState('cropping');
+    if (files.length === 1) {
+      setBatchMode(false);
+      const objUrl = URL.createObjectURL(files[0]);
+      setOriginalFile(files[0]);
+      setOriginalImageUrl(objUrl);
+      setUploadState('cropping');
+    } else {
+      setBatchMode(true);
+      setBatchFiles(files);
+      setBatchCompleted([]);
+      setBatchProgress(0);
+      setBatchError(null);
+      setUploadState('batchProcessing' as any);
+      processBatch(files);
+    }
+  };
+
+  const processBatch = async (files: File[]) => {
+    let completed: {file: File, url: string}[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      setBatchProgress(i);
+      try {
+        const formData = new FormData();
+        formData.append('image', files[i]);
+
+        const res = await fetch('/api/remove-bg', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to process image ${files[i].name}`);
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        completed.push({ file: files[i], url });
+
+        // Decrement credits on success
+        setCredits(prev => {
+          const newCredits = Math.max(0, prev - 1);
+          localStorage.setItem('bg_removal_credits', newCredits.toString());
+          return newCredits;
+        });
+
+      } catch (err: any) {
+        console.error(err);
+        setBatchError(err.message || 'Error processing some images.');
+      }
+    }
+    
+    setBatchProgress(files.length);
+    setBatchCompleted(completed);
+    setUploadState('batchDone' as any);
   };
 
   const processImage = async (fileToProcess: File | Blob, useUrl: string) => {
@@ -101,6 +185,13 @@ export default function Home() {
          const dims = await getImageDimensions(processedObjUrl);
          setProcessedInfo({ size: blob.size, width: dims.width, height: dims.height });
       }
+
+      // Decrement credits on success
+      setCredits(prev => {
+        const newCredits = Math.max(0, prev - 1);
+        localStorage.setItem('bg_removal_credits', newCredits.toString());
+        return newCredits;
+      });
 
       setUploadState('done');
     } catch (err: any) {
@@ -169,10 +260,26 @@ export default function Home() {
 
   const handleDownloadHD = () => {
     if (!hdUnlocked) {
+      setAdIntent('hd_download');
       setAdModalOpen(true);
       return;
     }
     triggerDownload(true);
+  };
+
+  const handleAdUnlock = () => {
+    if (adIntent === 'hd_download') {
+      setHdUnlocked(true);
+    } else if (adIntent === 'unlock_removals') {
+      setCredits(3);
+      localStorage.setItem('bg_removal_credits', '3');
+      if (pendingFiles && pendingFiles.length > 0) {
+        proceedWithImagesSelect(pendingFiles);
+        setPendingFiles(null);
+      }
+    }
+    setAdModalOpen(false);
+    setAdIntent(null);
   };
 
   const resetState = () => {
@@ -181,7 +288,45 @@ export default function Home() {
     setOriginalImageUrl(null);
     setProcessedImageUrl(null);
     setError(null);
+    setBatchMode(false);
+    setBatchFiles([]);
+    setBatchCompleted([]);
+    setBatchError(null);
     setBgType('transparent');
+  };
+
+  const handleDownloadBatchZip = async () => {
+    try {
+      // Dynamic import to avoid SSR issues
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+
+      // Fetch blobs from completed URLs and add to ZIP
+      const folder = zip.folder("background-removed");
+      
+      for (let i = 0; i < batchCompleted.length; i++) {
+        const item = batchCompleted[i];
+        const res = await fetch(item.url);
+        const blob = await res.blob();
+        if (folder) {
+           folder.file(`bg-removed-${i + 1}-${item.file.name}`, blob);
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const zipUrl = URL.createObjectURL(zipBlob);
+      
+      const a = document.createElement('a');
+      a.href = zipUrl;
+      a.download = `PromptCraft-Batch-${Date.now()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
+    } catch (err) {
+      console.error("Failed to generate zip", err);
+    }
   };
 
   return (
@@ -196,7 +341,7 @@ export default function Home() {
           promptcraftin.in
         </div>
         <div className="flex gap-4">
-          {uploadState === 'done' && (
+          {(uploadState === 'done' || uploadState === 'batchDone' as any) && (
             <button 
               onClick={resetState}
               className="px-[18px] py-[10px] rounded-lg text-sm font-semibold bg-[#F3F4F6] text-[#111827] transition-colors hover:bg-gray-200"
@@ -211,11 +356,11 @@ export default function Home() {
       <main className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-[#F9FAFB]">
         <section className={cn(
           "flex flex-col items-center justify-center p-6 lg:p-10",
-          uploadState !== 'done' && "shrink-0 min-h-[calc(100vh-64px)] w-full relative z-10"
+          (uploadState !== 'done' && uploadState !== 'batchDone' as any) && "shrink-0 min-h-[calc(100vh-64px)] w-full relative z-10"
         )}>
           {uploadState === 'idle' && (
              <>
-               <UploadBox onImageSelect={handleImageSelect} />
+               <UploadBox onImagesSelect={handleImagesSelect} credits={credits} />
                <div className="mt-12 flex flex-col items-center gap-4 animate-in fade-in duration-700">
                  <p className="text-sm text-gray-500 max-w-md text-center">
                    By uploading an image, you agree to our <a href="/terms" className="underline hover:text-gray-800">Terms of Service</a> and <a href="/privacy-policy" className="underline hover:text-gray-800">Privacy Policy</a>.
@@ -239,6 +384,7 @@ export default function Home() {
             />
           )}
 
+          {/* Existing Single Processing */}
           {uploadState === 'processing' && (
             <div className="flex flex-col items-center justify-center w-full max-w-[580px] p-12 mt-10 min-h-[400px]">
                <Loader2 className="w-10 h-10 text-black animate-spin mb-4" />
@@ -247,12 +393,31 @@ export default function Home() {
             </div>
           )}
 
+          {uploadState === 'batchProcessing' as any && (
+            <div className="flex flex-col items-center justify-center w-full max-w-[580px] p-12 mt-10 min-h-[400px]">
+               <Loader2 className="w-10 h-10 text-black animate-spin mb-4" />
+               <h3 className="text-xl font-medium text-gray-900 mb-1">Batch Processing...</h3>
+               <p className="text-gray-500 text-sm">Processing image {batchProgress + 1} of {batchFiles.length}</p>
+               
+               <div className="w-full bg-gray-200 rounded-full h-2 mt-6 overflow-hidden">
+                 <div className="bg-black h-2 transition-all duration-300" style={{ width: `${(batchProgress / batchFiles.length) * 100}%` }}></div>
+               </div>
+            </div>
+          )}
+
           {error && (
             <div className="w-full max-w-[580px] mt-10 p-4 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-sm font-medium px-6 py-4 shadow-sm border border-red-100">
               {error}
             </div>
           )}
+          
+          {batchError && (
+             <div className="w-full max-w-[580px] mt-10 p-4 bg-yellow-50 text-yellow-800 rounded-2xl flex items-center justify-center text-sm font-medium px-6 py-4 shadow-sm border border-yellow-200">
+              {batchError}
+            </div>
+          )}
 
+          {/* Existing Single Upload Done */}
           {uploadState === 'done' && originalImageUrl && processedImageUrl && originalInfo && processedInfo && (
             <div className="w-full max-w-[580px] flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
                <ImageSlider 
@@ -266,6 +431,28 @@ export default function Home() {
                  <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
                  Background removed successfully
                </div>
+            </div>
+          )}
+
+          {/* Batch Upload Done */}
+          {uploadState === 'batchDone' as any && batchCompleted.length > 0 && (
+            <div className="w-full max-w-[700px] flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
+               <h2 className="text-2xl font-semibold mb-6">Batch Process Complete</h2>
+               <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+                 {batchCompleted.map((item, idx) => (
+                   <div key={idx} className="relative aspect-square bg-[#ececec] rounded-lg overflow-hidden flex items-center justify-center border border-gray-200" style={{ backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAMUExURbOzs/v7+9nZ2d3d3XK0ONoAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAwSURBVBjTY2BgUGBQUGBgYEBgA2ZgDDA1AylGVjZkQZDAgA7gE0BSDJpgbAagHwsAFUoEA3eXvHIAAAAASUVORK5CYII=")'}}>
+                      <img src={item.url} alt={`Processed ${idx+1}`} className="max-w-full max-h-full object-contain" />
+                   </div>
+                 ))}
+               </div>
+               
+               <button 
+                  onClick={handleDownloadBatchZip}
+                  className="px-8 py-3 text-white bg-black rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-2"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Download All as ZIP
+                </button>
             </div>
           )}
         </section>
@@ -324,10 +511,13 @@ export default function Home() {
 
       <AdModal 
         isOpen={adModalOpen} 
-        onClose={() => setAdModalOpen(false)} 
-        onUnlock={() => {
-          setHdUnlocked(true);
-        }}
+        onClose={() => {
+          setAdModalOpen(false);
+          setAdIntent(null);
+          setPendingFiles(null);
+        }} 
+        onUnlock={handleAdUnlock}
+        intent={adIntent}
       />
     </div>
     </ErrorBoundary>

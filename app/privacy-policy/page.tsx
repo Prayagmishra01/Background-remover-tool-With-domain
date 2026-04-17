@@ -7,7 +7,7 @@ export default function PrivacyPolicy() {
       
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">1. Introduction</h2>
       <p>
-        Welcome to BGRemover ("we," "our," or "us"). We respect your privacy and are committed to protecting it. This Privacy Policy governs your use of our AI Background Remover website and tool. By using our website, you consent to the data practices described in this statement.
+        Welcome to PromptCraft ("we," "our," or "us"). We respect your privacy and are committed to protecting it. This Privacy Policy governs your use of our AI Background Remover website and tool. By using our website, you consent to the data practices described in this statement.
       </p>
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">2. Information We Collect</h2>

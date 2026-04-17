@@ -1,29 +1,59 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
 
-    // 1. Send to Telegram if Token exists
-    const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
-    const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+    // --- NEW: Save JSON globally to a local file so you can read it easily ---
+    try {
+      const logFilePath = path.join(process.cwd(), 'latest-errors.log');
+      const logEntry = `[${new Date().toISOString()}] ${JSON.stringify(payload, null, 2)}\n\n`;
+      fs.appendFileSync(logFilePath, logEntry);
+      console.log('🚨 NEW ERROR LOGGED TO: /latest-errors.log');
+    } catch (fsErr) {
+      console.error("Failed to write to local error log file", fsErr);
+    }
+
+    // 1. Send to Telegram using token provided. If no CHAT_ID, log that it's missing.
+    const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN || "8680525755:AAESgGKZSLf9MRpavQbHthM5QngMWgmrjtI";
+    const telegramChatId = process.env.TELEGRAM_CHAT_ID || "6040436866";
 
     if (telegramBotToken && telegramChatId) {
+      // Escape HTML characters for Telegram HTML parse_mode
+      const escapeHtml = (text: string) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "N/A";
+
+      const actionHistoryList = payload.action_history 
+        ? payload.action_history.map((a: string, i: number) => `${i + 1}. ${escapeHtml(a)}`).join('\n')
+        : "None recorded";
+
       const message = `
-🚨 *PROMPTCRAFT.IN ERROR ALERT* 🚨
+🚨 <b>PROMPTCRAFT.IN SYSTEM CRASH</b> 🚨
 
-*Time:* \`${payload.timestamp}\`
-*Stage:* ${payload.tool_stage.toUpperCase()}
-*Severity:* ${payload.severity.toUpperCase()}
+<b>🕒 TIME:</b> <code>${escapeHtml(payload.timestamp)}</code>
+<b>⚠️ SEVERITY:</b> <code>${escapeHtml(payload.severity.toUpperCase())}</code>
+<b>⚙️ STAGE:</b> <code>${escapeHtml(payload.tool_stage.toUpperCase())}</code>
 
-*Error Message:*
-\`${payload.error_message}\`
+<b>🔴 ERROR MESSAGE:</b>
+<pre>${escapeHtml(payload.error_message)}</pre>
 
-*Last Action:* ${payload.action}
-*URL:* ${payload.page_url}
+<b>👤 USER ENVIRONMENT:</b>
+• <b>Device:</b> <code>${escapeHtml(payload.device)}</code>
+• <b>Resolution:</b> <code>${escapeHtml(payload.screen_resolution)}</code> (VP: <code>${escapeHtml(payload.viewport_size)}</code>)
+• <b>Memory:</b> <code>${escapeHtml(payload.device_memory)}</code> (JS: <code>${escapeHtml(payload.memory_usage)}</code>)
+• <b>Cores:</b> <code>${escapeHtml(payload.hardware_concurrency)}</code>
+• <b>Network:</b> <code>${escapeHtml(payload.connection)}</code>
+• <b>Browser:</b> <code>${escapeHtml(payload.browser)}</code>
+• <b>Timezone:</b> <code>${escapeHtml(payload.timezone)}</code>
 
-*Device:* ${payload.device}
-*Browser:* ${payload.browser}
+<b>📍 LOCATION & ACTIONS:</b>
+• <b>URL:</b> <a href="${escapeHtml(payload.page_url)}">${escapeHtml(payload.page_url)}</a>
+<b>User's Last 5 Context Actions:</b>
+<pre>${actionHistoryList}</pre>
+
+<b>🔍 STACK TRACE:</b>
+<pre>${escapeHtml(payload.stack_trace).substring(0, 800)}${payload.stack_trace.length > 800 ? '\n...[TRUNCATED]' : ''}</pre>
       `;
 
       await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
@@ -32,9 +62,11 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           chat_id: telegramChatId,
           text: message,
-          parse_mode: 'Markdown'
+          parse_mode: 'HTML'
         })
       }).catch(e => console.error("Telegram API Error", e));
+    } else if (telegramBotToken && !telegramChatId) {
+      console.warn("TELEGRAM_BOT_TOKEN found, but TELEGRAM_CHAT_ID is missing. Cannot send message to Telegram.");
     }
 
     // 2. Here you could optionally push to MongoDB, Firebase, or an Email API (like Resend).

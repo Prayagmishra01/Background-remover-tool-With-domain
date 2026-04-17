@@ -47,8 +47,8 @@ export default function Contact() {
 
       <h2 className="text-xl font-semibold text-gray-900 mb-4">Direct Contact Information</h2>
       <div className="space-y-2">
-        <p><strong>Support Email:</strong> <a href="mailto:support@bgremover.example.com" className="text-blue-600 hover:underline">support@bgremover.example.com</a></p>
-        <p><strong>Business Inquiries:</strong> <a href="mailto:partnerships@bgremover.example.com" className="text-blue-600 hover:underline">partnerships@bgremover.example.com</a></p>
+        <p><strong>Support Email:</strong> <a href="mailto:support@promptcraftin.in" className="text-blue-600 hover:underline">support@promptcraftin.in</a></p>
+        <p><strong>Business Inquiries:</strong> <a href="mailto:partnerships@promptcraftin.in" className="text-blue-600 hover:underline">partnerships@promptcraftin.in</a></p>
         <p className="pt-2 text-sm text-gray-500">We aim to respond to all inquiries within 24-48 business hours.</p>
       </div>
     </StaticPageLayout>
