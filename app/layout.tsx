@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css'; // Global styles
 import { ErrorTrackingInitializer } from '@/components/ErrorTrackingInitializer';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: 'promptcraftin.in - Free Private Background Remover (No Upload)',
@@ -40,6 +41,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body suppressHydrationWarning>
         <ErrorTrackingInitializer />
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
