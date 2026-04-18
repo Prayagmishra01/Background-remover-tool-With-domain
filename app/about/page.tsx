@@ -5,7 +5,7 @@ export default function About() {
     <StaticPageLayout title="About Us">
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Who We Are</h2>
       <p>
-        Welcome to PromptCraft — a passionate team of developers and digital creators dedicated to making high-quality photo editing accessible to everyone. We believe that professional-grade design tools shouldn't be locked behind prohibitive paywalls or steep learning curves.
+        Welcome to PromptCraft — a passionate team of developers and digital creators dedicated to making high-quality photo editing accessible to everyone. We believe that professional-grade design tools shouldn&apos;t be locked behind prohibitive paywalls or steep learning curves.
       </p>
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Our Mission</h2>
@@ -25,7 +25,7 @@ export default function About() {
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Get In Touch</h2>
       <p>
-        We are constantly iterating and improving our algorithms based on your feedback. If you have any suggestions, bug reports, or business inquiries, we'd love to hear from you. Please visit our <a href="/contact" className="text-blue-600 hover:underline">Contact Page</a> to send us a message.
+        We are constantly iterating and improving our algorithms based on your feedback. If you have any suggestions, bug reports, or business inquiries, we&apos;d love to hear from you. Please visit our <a href="/contact" className="text-blue-600 hover:underline">Contact Page</a> to send us a message.
       </p>
     </StaticPageLayout>
   );

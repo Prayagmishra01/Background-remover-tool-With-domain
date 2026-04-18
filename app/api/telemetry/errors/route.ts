@@ -6,19 +6,16 @@ export async function POST(req: Request) {
   try {
     const payload = await req.json();
 
-    // --- NEW: Save JSON globally to a local file so you can read it easily ---
     try {
       const logFilePath = path.join(process.cwd(), 'latest-errors.log');
       const logEntry = `[${new Date().toISOString()}] ${JSON.stringify(payload, null, 2)}\n\n`;
       fs.appendFileSync(logFilePath, logEntry);
-      console.log('🚨 NEW ERROR LOGGED TO: /latest-errors.log');
     } catch (fsErr) {
       console.error("Failed to write to local error log file", fsErr);
     }
 
-    // 1. Send to Telegram using token provided. If no CHAT_ID, log that it's missing.
-    const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN || "8680525755:AAESgGKZSLf9MRpavQbHthM5QngMWgmrjtI";
-    const telegramChatId = process.env.TELEGRAM_CHAT_ID || "6040436866";
+    const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+    const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
     if (telegramBotToken && telegramChatId) {
       // Escape HTML characters for Telegram HTML parse_mode

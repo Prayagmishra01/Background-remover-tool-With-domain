@@ -13,6 +13,9 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { compositeImageWithBackground } from '@/lib/canvasUtils';
+import { ContactButton } from '@/components/ContactButton';
+import { removeBackground } from '@imgly/background-removal';
+import { toast } from 'react-hot-toast';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -51,10 +54,12 @@ export default function Home() {
   const [batchError, setBatchError] = useState<string | null>(null);
 
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
+  const [loadingText, setLoadingText] = useState('Please wait, this usually takes 3-5 seconds');
 
   React.useEffect(() => {
     const saved = localStorage.getItem('bg_removal_credits');
     if (saved !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCredits(parseInt(saved, 10));
     } else {
       localStorage.setItem('bg_removal_credits', '3');
@@ -121,19 +126,7 @@ export default function Home() {
     for (let i = 0; i < files.length; i++) {
       setBatchProgress(i);
       try {
-        const formData = new FormData();
-        formData.append('image', files[i]);
-
-        const res = await fetch('/api/remove-bg', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to process image ${files[i].name}`);
-        }
-
-        const blob = await res.blob();
+        const blob = await removeBackground(files[i]);
         const url = URL.createObjectURL(blob);
         completed.push({ file: files[i], url });
 
@@ -146,6 +139,7 @@ export default function Home() {
 
       } catch (err: any) {
         console.error(err);
+        toast.error(`Error on ${files[i].name}: ${err.message || 'Failed'}`);
         setBatchError(err.message || 'Error processing some images.');
       }
     }
@@ -161,30 +155,12 @@ export default function Home() {
       const { width, height } = await getImageDimensions(useUrl);
       setOriginalInfo({ size: fileToProcess.size, width, height });
 
-      const formData = new FormData();
-      formData.append('image', fileToProcess);
-
-      const res = await fetch('/api/remove-bg', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to process image');
-      }
-
-      const blob = await res.blob();
+      const blob = await removeBackground(fileToProcess);
       const processedObjUrl = URL.createObjectURL(blob);
       setProcessedImageUrl(processedObjUrl);
 
-      const isMock = res.headers.get('X-Mock-Mode') === 'true';
-
-      if (isMock) {
-         setProcessedInfo({ size: fileToProcess.size * 0.4, width, height });
-      } else {
-         const dims = await getImageDimensions(processedObjUrl);
-         setProcessedInfo({ size: blob.size, width: dims.width, height: dims.height });
-      }
+      const dims = await getImageDimensions(processedObjUrl);
+      setProcessedInfo({ size: blob.size, width: dims.width, height: dims.height });
 
       // Decrement credits on success
       setCredits(prev => {
@@ -196,6 +172,7 @@ export default function Home() {
       setUploadState('done');
     } catch (err: any) {
       console.error(err);
+      toast.error(err.message || 'Something went wrong removing the background!');
       setError(err.message || 'Something went wrong');
       setOriginalFile(null);
       setOriginalImageUrl(null);
@@ -333,27 +310,30 @@ export default function Home() {
     <ErrorBoundary>
     <div className="h-screen w-full flex flex-col bg-white text-gray-900 font-sans overflow-hidden">
       {/* Header */}
-      <header className="h-16 shrink-0 border-b border-gray-200 flex items-center justify-between px-6 lg:px-10">
-        <div className="flex items-center gap-2 font-bold text-[20px] tracking-tight">
-          <img src="https://res.cloudinary.com/dz3ixer7i/image/upload/v1776431696/Background_remover_website_logo_1_vqflqm.png" alt="PromptCraft Logo" className="w-8 h-8 object-contain" />
-          promptcraftin.in
-        </div>
-        <div className="flex gap-4">
-          {(uploadState === 'done' || uploadState === 'batchDone' as any) && (
-            <button 
-              onClick={resetState}
-              className="px-[18px] py-[10px] rounded-lg text-sm font-semibold bg-[#F3F4F6] text-[#111827] transition-colors hover:bg-gray-200"
-            >
-              Upload New
-            </button>
-          )}
+      <header className="py-4 shrink-0 border-b border-gray-200 bg-white">
+        <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-8 lg:px-12">
+          <div className="flex items-center gap-2 sm:gap-3 font-bold text-[26px] sm:text-[34px] tracking-tight leading-none text-gray-900">
+            <img src="https://res.cloudinary.com/dz3ixer7i/image/upload/e_trim:10/v1776431696/Background_remover_website_logo_1_vqflqm.png" alt="PromptCraft Logo" className="h-[24px] sm:h-[32px] w-auto object-contain translate-y-1 sm:translate-y-1.5" />
+            <span>promptcraftin.in</span>
+          </div>
+          <div className="flex gap-4 items-center">
+            {(uploadState === 'done' || uploadState === 'batchDone' as any) && (
+              <button 
+                onClick={resetState}
+                className="px-[18px] py-[10px] rounded-lg text-sm font-semibold bg-[#F3F4F6] text-[#111827] transition-colors hover:bg-gray-200"
+              >
+                Upload New
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-[#F9FAFB]">
-        <section className={cn(
-          "flex flex-col items-center justify-center p-6 lg:p-10",
+        <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col items-center">
+          <section className={cn(
+            "flex flex-col items-center justify-center p-6 lg:p-10 w-full",
           (uploadState !== 'done' && uploadState !== 'batchDone' as any) && "shrink-0 min-h-[calc(100vh-64px)] w-full relative z-10"
         )}>
           {uploadState === 'idle' && (
@@ -387,7 +367,7 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center w-full max-w-[580px] p-12 mt-10 min-h-[400px]">
                <Loader2 className="w-10 h-10 text-black animate-spin mb-4" />
                <h3 className="text-xl font-medium text-gray-900 mb-1">Removing background...</h3>
-               <p className="text-gray-500 text-sm">Please wait, this usually takes 3-5 seconds</p>
+               <p className="text-gray-500 text-sm text-center font-medium max-w-[80%] mx-auto">{loadingText}</p>
             </div>
           )}
 
@@ -396,6 +376,7 @@ export default function Home() {
                <Loader2 className="w-10 h-10 text-black animate-spin mb-4" />
                <h3 className="text-xl font-medium text-gray-900 mb-1">Batch Processing...</h3>
                <p className="text-gray-500 text-sm">Processing image {batchProgress + 1} of {batchFiles.length}</p>
+               <p className="text-gray-500 text-xs mt-2 text-center">{loadingText}</p>
                
                <div className="w-full bg-gray-200 rounded-full h-2 mt-6 overflow-hidden">
                  <div className="bg-black h-2 transition-all duration-300" style={{ width: `${(batchProgress / batchFiles.length) * 100}%` }}></div>
@@ -493,7 +474,9 @@ export default function Home() {
                <span className="text-[10px] uppercase opacity-50 tracking-wider">Advertisement</span>
              </div>
 
-             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap justify-center gap-4 text-[11px] text-gray-400">
+             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap justify-center items-center gap-4 text-[11px] text-gray-400">
+                 <ContactButton variant="footer-help" />
+                 <ContactButton variant="footer-feedback" />
                  <a href="/privacy-policy" className="hover:text-gray-800">Privacy</a>
                  <a href="/terms" className="hover:text-gray-800">Terms</a>
                  <a href="/disclaimer" className="hover:text-gray-800">Disclaimer</a>
@@ -505,6 +488,7 @@ export default function Home() {
         {uploadState === 'idle' && (
           <HomeSEOContent />
         )}
+        </div>
       </main>
 
       <AdModal 

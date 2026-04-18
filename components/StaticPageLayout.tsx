@@ -5,10 +5,10 @@ export function StaticPageLayout({ children, title }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col bg-[#F9FAFB] font-sans text-gray-900">
       {/* Header */}
-      <header className="h-16 shrink-0 border-b border-gray-200 flex items-center justify-between px-6 lg:px-10 bg-white">
-        <Link href="/" className="flex items-center gap-2 font-bold text-[20px] tracking-tight text-gray-900 hover:opacity-80 transition-opacity">
-          <img src="https://res.cloudinary.com/dz3ixer7i/image/upload/v1776431696/Background_remover_website_logo_1_vqflqm.png" alt="PromptCraft Logo" className="w-8 h-8 object-contain" />
-          promptcraftin.in
+      <header className="py-4 shrink-0 border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 lg:px-12 bg-white">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 font-bold text-[26px] sm:text-[34px] tracking-tight leading-none text-gray-900 hover:opacity-80 transition-opacity">
+          <img src="https://res.cloudinary.com/dz3ixer7i/image/upload/e_trim:10/v1776431696/Background_remover_website_logo_1_vqflqm.png" alt="PromptCraft Logo" className="h-[24px] sm:h-[32px] w-auto object-contain translate-y-1 sm:translate-y-1.5" />
+          <span>promptcraftin.in</span>
         </Link>
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-600">
           <Link href="/" className="hover:text-black">Tool</Link>

@@ -27,7 +27,7 @@ export default function Terms() {
 
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">4. Limitation of Liability</h2>
       <p>
-        The PromptCraft service is provided on an "AS IS" and "AS AVAILABLE" basis. We make no warranties that the service will be entirely error-free or uninterrupted. We are not liable for any damages or losses related to your use of this service.
+        The PromptCraft service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. We make no warranties that the service will be entirely error-free or uninterrupted. We are not liable for any damages or losses related to your use of this service.
       </p>
       
       <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">5. Advertisements</h2>

@@ -85,16 +85,22 @@ export function CropWorkspace({ originalImageUrl, onCropComplete, onCancel }: Cr
         </ReactCrop>
       </div>
 
-      <div className="flex gap-4 mt-8 w-full max-w-[400px]">
+      <div className="flex gap-4 mt-8 w-full max-w-[480px]">
         <button 
-          onClick={onCancel}
-          className="flex-1 py-3 text-sm font-semibold rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200"
+          onClick={() => window.location.reload()}
+          className="flex-1 py-3 text-sm font-semibold rounded-lg bg-gray-50 text-gray-800 hover:bg-gray-100 border border-gray-200"
         >
           Cancel
         </button>
         <button 
+          onClick={onCancel}
+          className="flex-1 py-3 text-sm font-semibold rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200"
+        >
+          Skip Cropping
+        </button>
+        <button 
           onClick={handleApplyCrop}
-          className="flex-1 py-3 text-sm font-semibold rounded-lg bg-black text-white hover:bg-gray-900 transform transition-all"
+          className="flex-[1.5] py-3 text-sm font-semibold rounded-lg bg-black text-white hover:bg-gray-900 transform transition-all"
         >
           Apply & Continue
         </button>

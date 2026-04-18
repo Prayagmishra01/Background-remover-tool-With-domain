@@ -19,14 +19,14 @@ export function HomeSEOContent() {
           In a world where digital privacy is constantly compromised, promptcraftin.in stands apart by offering a <strong>secure background removal tool that works completely offline</strong> within your browser. Unlike traditional cloud-based AI photo editors that force you to upload your sensitive personal files, product photos, or confidential documents to remote servers, our Next.js application leverages cutting-edge browser technologies to process every pixel locally on your device.
         </p>
         <p>
-          We firmly believe that "free" shouldn't mean sacrificing your data. Because no pictures ever leave your computer or smartphone, there is zero risk of data breaches, unauthorized AI training sets scraping your face, or third-party server hacks. It represents the ultimate fusion of absolute privacy and state-of-the-art AI utility. 
+          We firmly believe that &quot;free&quot; shouldn&apos;t mean sacrificing your data. Because no pictures ever leave your computer or smartphone, there is zero risk of data breaches, unauthorized AI training sets scraping your face, or third-party server hacks. It represents the ultimate fusion of absolute privacy and state-of-the-art AI utility. 
         </p>
       </section>
 
       <section className="space-y-4">
         <h2 className="text-2xl font-bold text-gray-900 border-b pb-2">How Local Background Removal Works Without Uploading</h2>
         <p>
-          When you drag and drop a photo into promptcraftin.in, the image is loaded into your browser's temporary memory (via HTML5 Canvas and modern Web APIs). Instead of transmitting massive megabytes of data to a backend server, we download the mathematical instructions (the compiled AI model) directly to you. Your device's processor executes the segmentation algorithms.
+          When you drag and drop a photo into promptcraftin.in, the image is loaded into your browser&apos;s temporary memory (via HTML5 Canvas and modern Web APIs). Instead of transmitting massive megabytes of data to a backend server, we download the mathematical instructions (the compiled AI model) directly to you. Your device&apos;s processor executes the segmentation algorithms.
         </p>
         <p>
           Because there is no network bottleneck involved waiting for massive files to upload and download, the actual removal process feels lightning fast. Once the AI identifies the distinct subjects—whether humans, cars, products, or animals—it separates them from the background, replaces the backdrop with digital transparency, and readies it for download. All of this happens in milliseconds with absolute, unparalleled security.
@@ -38,7 +38,7 @@ export function HomeSEOContent() {
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
             <h3 className="font-bold text-gray-900 mb-2">100% Free Forever</h3>
-            <p className="text-sm">We don't restrict you with daily quotas, hidden premium tiers, or frustrating watermarks. Our tool is built to remain completely free for casual and professional users globally.</p>
+            <p className="text-sm">We don&apos;t restrict you with daily quotas, hidden premium tiers, or frustrating watermarks. Our tool is built to remain completely free for casual and professional users globally.</p>
           </div>
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
             <h3 className="font-bold text-gray-900 mb-2">No Account Required</h3>
@@ -64,12 +64,12 @@ export function HomeSEOContent() {
         
         <h3 className="text-lg font-semibold text-gray-800">2. Professional CVs, Resumes, and Visas</h3>
         <p>
-          Don't have a professional photography studio? Snap a selfie against your bedroom wall. Use our platform to instantly strip away the messy background, then replace it with a solid corporate gray or blue color using our built-in background selection tools. Create passport-compliant photos with ease. 
+          Don&apos;t have a professional photography studio? Snap a selfie against your bedroom wall. Use our platform to instantly strip away the messy background, then replace it with a solid corporate gray or blue color using our built-in background selection tools. Create passport-compliant photos with ease. 
         </p>
 
         <h3 className="text-lg font-semibold text-gray-800">3. YouTube Thumbnails & Social Media Marketing</h3>
         <p>
-          Capture the viewer's attention by layering a sharply cut-out subject reaction photo against a vibrant custom background. Social media managers and content creators save countless hours skipping heavy desktop software and jumping straight into our browser-based utility.
+          Capture the viewer&apos;s attention by layering a sharply cut-out subject reaction photo against a vibrant custom background. Social media managers and content creators save countless hours skipping heavy desktop software and jumping straight into our browser-based utility.
         </p>
       </section>
 
