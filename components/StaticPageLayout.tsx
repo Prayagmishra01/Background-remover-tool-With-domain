@@ -7,8 +7,8 @@ export function StaticPageLayout({ children, title }: { children: React.ReactNod
       {/* Header */}
       <header className="h-16 shrink-0 border-b border-gray-200 flex items-center justify-between px-6 lg:px-10 bg-white">
         <Link href="/" className="flex items-center gap-2 font-bold text-[20px] tracking-tight text-gray-900 hover:opacity-80 transition-opacity">
-          <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center"></div>
-          BGRemover
+          <img src="https://res.cloudinary.com/dz3ixer7i/image/upload/v1776431696/Background_remover_website_logo_1_vqflqm.png" alt="PromptCraft Logo" className="w-8 h-8 object-contain" />
+          promptcraftin.in
         </Link>
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-600">
           <Link href="/" className="hover:text-black">Tool</Link>
@@ -34,7 +34,7 @@ export function StaticPageLayout({ children, title }: { children: React.ReactNod
           <Link href="/terms" className="hover:text-gray-900">Terms & Conditions</Link>
           <Link href="/disclaimer" className="hover:text-gray-900">Disclaimer</Link>
         </div>
-        <p>&copy; {new Date().getFullYear()} BGRemover. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} promptcraftin.in. All rights reserved.</p>
       </footer>
     </div>
   );

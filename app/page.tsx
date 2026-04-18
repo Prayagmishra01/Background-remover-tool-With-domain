@@ -335,9 +335,7 @@ export default function Home() {
       {/* Header */}
       <header className="h-16 shrink-0 border-b border-gray-200 flex items-center justify-between px-6 lg:px-10">
         <div className="flex items-center gap-2 font-bold text-[20px] tracking-tight">
-          <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center">
-            {/* Logo icon inner */}
-          </div>
+          <img src="https://res.cloudinary.com/dz3ixer7i/image/upload/v1776431696/Background_remover_website_logo_1_vqflqm.png" alt="PromptCraft Logo" className="w-8 h-8 object-contain" />
           promptcraftin.in
         </div>
         <div className="flex gap-4">
