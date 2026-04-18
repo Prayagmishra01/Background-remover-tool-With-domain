@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next';
-import { getAllPosts } from '@/lib/blog-api';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://promptcraftin.in';
@@ -10,39 +9,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/about',
     '/contact',
     '/privacy-policy',
-    '/terms-conditions',
+    '/terms',
     '/disclaimer',
-    '/blog',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : (route === '/blog' ? 0.9 : 0.8),
+    priority: route === '' ? 1.0 : 0.8,
   }));
 
-  // Static programmatic tool pages mapped dynamically
+  // Scalable Landing Page Ideas
   const tools = [
-    'passports', 'pan-card', 'ecommerce', 'instagram-posts', 
-    'resume-photo', 'cars', 'logos', 'real-estate', 
-    'amazon-listings', 'memes', 'signatures', 'headshots', 
-    'jewelry', 'youtube-thumbnails', 'clothing'
+    'remove-background-from-image',
+    'remove-background-hd',
+    'background-remover-free-online',
+    'remove-background-from-logo',
+    'transparent-background-maker-hd',
+    'bulk-background-remover'
   ];
 
   const programmaticRoutes = tools.map((tool) => ({
-    url: `${baseUrl}/remove-background-${tool}`,
+    url: `${baseUrl}/${tool}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
-  // Dynamic Blog Routes
-  const posts = getAllPosts(['slug', 'date']);
-  const blogRoutes = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
-
-  return [...routes, ...programmaticRoutes, ...blogRoutes];
+  return [...routes, ...programmaticRoutes];
 }

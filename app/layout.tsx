@@ -5,9 +5,12 @@ import Script from 'next/script';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'promptcraftin.in - Free Private Background Remover (No Upload)',
-  description: 'Instantly remove image backgrounds fully locally in your browser. 100% free, no signups, no uploads, absolute privacy guaranteed.',
-  keywords: 'free background remover without upload, offline background remover, privacy image background remover, remove background locally browser',
+  title: 'Free HD Background Remover | 100% Private & No Watermark | PromptCraft',
+  description: 'Remove image backgrounds instantly in your browser. 100% FREE, no server uploads, batch processing, and download in absolute HD quality.',
+  keywords: 'in browser background remover free, remove background without uploading image, HD background remover free no watermark, bulk image background remover free, offline background removal tool web',
+  alternates: {
+    canonical: 'https://promptcraftin.in',
+  },
   verification: {
     google: "DUUkyk8bHf-PogaTJMn2pR0Cf8E9JYWj0E7xTh4oAsk"
   },
@@ -22,12 +25,17 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Free Private Background Remover (No Upload)',
-    description: 'Instantly remove image backgrounds fully locally in your browser. 100% private.',
+    title: 'Free Background Remover - HD Quality & 100% Private',
+    description: 'Remove backgrounds instantly right in your browser. No data leaves your device. Free HD downloads.',
     url: 'https://promptcraftin.in',
-    siteName: 'promptcraftin.in',
+    siteName: 'PromptCraft',
     locale: 'en_IN',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Background Remover (100% Free & Private)',
+    description: 'Browser-based HD background removal. No uploads, no watermarks.',
   },
   robots: {
     index: true,
@@ -46,6 +54,8 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://staticimgly.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://staticimgly.com" />
         <script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9154045707433472"
@@ -62,6 +72,49 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 
               gtag('config', 'G-342TVNYJJ4');
             `,
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                "name": "PromptCraft Background Remover",
+                "operatingSystem": "Web Browser",
+                "applicationCategory": "MultimediaApplication",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "USD"
+                },
+                "description": "A browser-based, AI-powered tool to remove image backgrounds with high-definition exports and batch processing.",
+                "featureList": "Client-side processing, HD exports, Batch background removal, Zero data retention"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "Is this background remover really free?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Yes, PromptCraft is 100% free to use. You can process images and download them in standard or HD resolutions without paying."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Are my images uploaded to a server?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "No! Our AI runs entirely inside your web browser. Your photos never leave your device, ensuring complete privacy."
+                    }
+                  }
+                ]
+              }
+            ])
           }}
         />
       </head>

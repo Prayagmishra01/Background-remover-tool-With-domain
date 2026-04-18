@@ -55,6 +55,7 @@ export default function Home() {
 
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
   const [loadingText, setLoadingText] = useState('Please wait, this usually takes 3-5 seconds');
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   React.useEffect(() => {
     const saved = localStorage.getItem('bg_removal_credits');
@@ -70,6 +71,29 @@ export default function Home() {
   const [bgType, setBgType] = useState<BgType>('transparent');
   const [bgColor, setBgColor] = useState('#ffffff');
   const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
+
+  const logTelemetryError = async (err: Error | any, stage: string) => {
+    try {
+      await fetch('/api/telemetry/errors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error_message: err.message || String(err),
+          stack_trace: err.stack || "",
+          severity: "error",
+          tool_stage: stage,
+          timestamp: new Date().toISOString(),
+          device: navigator.userAgent,
+          screen_resolution: typeof window !== 'undefined' ? `${window.screen.width}x${window.screen.height}` : 'unknown',
+          page_url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+          hardware_concurrency: navigator.hardwareConcurrency || 'unknown',
+          device_memory: (navigator as any).deviceMemory || 'unknown'
+        })
+      });
+    } catch(e) {
+      // Intentionally silent
+    }
+  };
 
   // Helper to fetch image dimensions
   const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
@@ -126,7 +150,21 @@ export default function Home() {
     for (let i = 0; i < files.length; i++) {
       setBatchProgress(i);
       try {
-        const blob = await removeBackground(files[i]);
+        setLoadingProgress(0);
+        const config = {
+          progress: (key: string, current: number, total: number) => {
+            const percentage = Math.round((current / total) * 100);
+            setLoadingProgress(percentage);
+            setLoadingText(`Downloading ${key} AI model: ${percentage}%`);
+          }
+        };
+
+        const removalPromise = removeBackground(files[i], config);
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('AI process timed out. Try a smaller image or another browser.')), 60000);
+        });
+
+        const blob = await Promise.race([removalPromise, timeoutPromise]);
         const url = URL.createObjectURL(blob);
         completed.push({ file: files[i], url });
 
@@ -139,6 +177,7 @@ export default function Home() {
 
       } catch (err: any) {
         console.error(err);
+        logTelemetryError(err, 'processBatch');
         toast.error(`Error on ${files[i].name}: ${err.message || 'Failed'}`);
         setBatchError(err.message || 'Error processing some images.');
       }
@@ -155,7 +194,23 @@ export default function Home() {
       const { width, height } = await getImageDimensions(useUrl);
       setOriginalInfo({ size: fileToProcess.size, width, height });
 
-      const blob = await removeBackground(fileToProcess);
+      setLoadingText('Initializing background removal AI...');
+      setLoadingProgress(0);
+      const config = {
+        progress: (key: string, current: number, total: number) => {
+          const percentage = Math.round((current / total) * 100);
+          setLoadingProgress(percentage);
+          setLoadingText(`Downloading ${key} AI model: ${percentage}%. (One-time only)`);
+        }
+      };
+
+      // Wrap in a promise race to protect against infinite hangs on unsupported hardware
+      const removalPromise = removeBackground(fileToProcess, config);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('AI process timed out. Try a smaller image or another browser.')), 60000);
+      });
+
+      const blob = await Promise.race([removalPromise, timeoutPromise]);
       const processedObjUrl = URL.createObjectURL(blob);
       setProcessedImageUrl(processedObjUrl);
 
@@ -172,6 +227,7 @@ export default function Home() {
       setUploadState('done');
     } catch (err: any) {
       console.error(err);
+      logTelemetryError(err, 'processImage');
       toast.error(err.message || 'Something went wrong removing the background!');
       setError(err.message || 'Something went wrong');
       setOriginalFile(null);
@@ -199,14 +255,24 @@ export default function Home() {
     if (!processedImageUrl || !processedInfo) return;
     
     try {
+      let dlWidth = processedInfo.width;
+      let dlHeight = processedInfo.height;
+
+      // Scale down standard to max ~1000px longest edge or 50%, whichever is smaller
+      if (!isHD) {
+        const scale = Math.min(0.5, 1000 / Math.max(dlWidth, dlHeight));
+        dlWidth = Math.floor(dlWidth * scale);
+        dlHeight = Math.floor(dlHeight * scale);
+      }
+
       // Create a final composited blob using our canvas utils
       const finalBlob = await compositeImageWithBackground(
         processedImageUrl,
         bgType,
         bgColor,
         bgImageUrl,
-        processedInfo.width,
-        processedInfo.height
+        dlWidth,
+        dlHeight
       );
 
       const finalUrl = URL.createObjectURL(finalBlob);
@@ -364,10 +430,14 @@ export default function Home() {
 
           {/* Existing Single Processing */}
           {uploadState === 'processing' && (
-            <div className="flex flex-col items-center justify-center w-full max-w-[580px] p-12 mt-10 min-h-[400px]">
+            <div className="flex flex-col items-center justify-center w-full max-w-[580px] p-6 lg:p-12 mt-10 min-h-[300px] lg:min-h-[400px]">
                <Loader2 className="w-10 h-10 text-black animate-spin mb-4" />
-               <h3 className="text-xl font-medium text-gray-900 mb-1">Removing background...</h3>
-               <p className="text-gray-500 text-sm text-center font-medium max-w-[80%] mx-auto">{loadingText}</p>
+               <h3 className="text-xl font-medium text-gray-900 mb-1 text-center">Removing background...</h3>
+               <p className="text-gray-500 text-sm text-center font-medium max-w-[80%] mx-auto mb-4">{loadingText}</p>
+               
+               <div className="w-full max-w-[300px] bg-gray-200 rounded-full h-2 overflow-hidden mx-auto">
+                 <div className="bg-black h-2 transition-all duration-300" style={{ width: `${loadingProgress}%` }}></div>
+               </div>
             </div>
           )}
 
